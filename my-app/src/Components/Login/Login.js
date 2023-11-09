@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import basestyle from "../Base.module.css";
 import loginstyle from "./Login.module.css";
-import axios from "axios";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
+import Profile from "../Profile/Profile";
 const Login = ({ setUserState }) => {
   const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState({});
@@ -42,14 +43,20 @@ const Login = ({ setUserState }) => {
     // }
   };
 
-  useEffect(() => {
+  useEffect(async () => {
     if (Object.keys(formErrors).length === 0 && isSubmit) {
       console.log(user);
-      axios.post("http://localhost:9002/login", user).then((res) => {
-        alert(res.data.message);
-        setUserState(res.data.user);
-        navigate("/", { replace: true });
-      });
+     
+        const res = await supabase.auth.signUp({
+          email: user.email,
+          password: user.password,
+         
+        }).then((success) => {
+          setUserState({"fname":user.email})
+          navigate("/");
+        })
+        console.log(res);
+      
     }
   }, [formErrors]);
   return (
@@ -78,7 +85,6 @@ const Login = ({ setUserState }) => {
           Login
         </button>
       </form>
-      <NavLink to="/signup">Not yet registered? Register Now</NavLink>
     </div>
   );
 };

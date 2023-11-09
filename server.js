@@ -1,75 +1,51 @@
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
+const { Pool } = require("pg");
+
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(cors());
 
-mongoose.connect(
-  "mongodb://localhost:27017/testdb",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  },
-  () => {
-    console.log("DB connected");
+const pool = new Pool({
+  user: "goldswiper-postgres-qa.rupeek.co",
+  host: "goldswiper_qa_app",
+  database: "goldswiper_qa",
+  password: "RL0c1AvLxV786sNs",
+  port: 12032, // Default PostgreSQL port
+});
+
+pool.connect((err) => {
+  if (err) {
+    console.error("Error connecting to the PostgreSQL database:", err);
+  } else {
+    console.log("Connected to PostgreSQL database");
   }
-);
-
-const userSchema = new mongoose.Schema({
-  fname: String,
-  lname: String,
-  email: String,
-  password: String,
 });
 
-const User = new mongoose.model("User", userSchema);
+// Define your PostgreSQL schema
+const userTableQuery = `
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    fname VARCHAR(255),
+    lname VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255)
+  );
+`;
 
-//Routes
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-  //check email
-  User.findOne({ email: email }, (err, user) => {
-    if (user) {
-      //check password
-      if (password === user.password) {
-        res.send({ message: "Login successfully", user: user });
-      } else {
-        res.send({ message: "Password and confirm password didn't match" });
-      }
-    } else {
-      res.send({ message: "Please login to proceed" });
-    }
-  });
+pool.query(userTableQuery, (err, result) => {
+  if (err) {
+    console.error("Error creating users table:", err);
+  } else {
+    console.log("Users table created (or already exists)");
+  }
 });
 
-app.post("/signup", (req, res) => {
-  const { fname, lname, email, password } = req.body;
-  //check email
-  User.findOne({ email: email }, (err, user) => {
-    if (user) {
-      res.send({ message: "User is already registerd" });
-    } else {
-      const user = new User({
-        fname,
-        lname,
-        email,
-        password,
-      });
-      user.save((err) => {
-        if (err) {
-          res.send(err);
-        } else {
-          res.send({ message: "Account has been created!! Please Login" });
-        }
-      });
-    }
-  });
-  // res.send("register");
-  //   console.log(req.body);
-});
+// Routes
+// Define your API routes for interacting with the PostgreSQL database here
+
 
 app.listen(8000, () => {
   console.log("Server starting at 8000");
