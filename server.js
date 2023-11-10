@@ -9,8 +9,8 @@ app.use(express.urlencoded());
 app.use(cors());
 
 const pool = new Pool({
-  user: "goldswiper-postgres-qa.rupeek.co",
-  host: "goldswiper_qa_app",
+  user: "goldswiper_qa_app",
+  host: "goldswiper-postgres-qa.rupeek.co",
   database: "goldswiper_qa",
   password: "RL0c1AvLxV786sNs",
   port: 12032, // Default PostgreSQL port
